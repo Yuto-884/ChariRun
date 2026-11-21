@@ -1,57 +1,68 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+namespace KTC.Game
 {
-    private Rigidbody2D _rigidbody2D;
-    private bool _isGrounded;
-    private float _jumpPower = 15f;
-
-    private void Start()
+    public class PlayerController : MonoBehaviour
     {
-        _rigidbody2D = GetComponent<Rigidbody2D>();
-    }
+        private const float JUMP_POWER = 15f;
+        private const string GROUND_OBJECT_NAME = "Ground";
+        private const string OBSTACLE_TAG = "Obstacle";
 
-    private void Update()
-    {
-        if (Keyboard.current != null &&
-            Keyboard.current.spaceKey.wasPressedThisFrame &&
-            _isGrounded)
+        private Rigidbody2D _rigidbody2D = null;
+        private bool _isGrounded = false;
+
+        private void Start()
         {
-            _rigidbody2D.linearVelocity = new Vector2(0f, _jumpPower);
-            _isGrounded = false;
+            _rigidbody2D = GetComponent<Rigidbody2D>();
         }
-    }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.gameObject.name == "Ground")
+        private void Update()
         {
-            _isGrounded = true;
+            if (Keyboard.current != null &&
+                Keyboard.current.spaceKey.wasPressedThisFrame &&
+                _isGrounded)
+            {
+                _rigidbody2D.linearVelocity = new Vector2(0f, JUMP_POWER);
+                _isGrounded = false;
+            }
         }
-    }
 
-    private void OnCollisionStay2D(Collision2D collision)
-    {
-        if (collision.gameObject.name == "Ground")
+        private void OnCollisionEnter2D(Collision2D collision)
         {
-            _isGrounded = true;
+            if (collision.gameObject.name == GROUND_OBJECT_NAME)
+            {
+                _isGrounded = true;
+            }
         }
-    }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.gameObject.name == "Ground")
+        private void OnCollisionStay2D(Collision2D collision)
         {
-            _isGrounded = false;
+            if (collision.gameObject.name == GROUND_OBJECT_NAME)
+            {
+                _isGrounded = true;
+            }
         }
-    }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.gameObject.CompareTag("Obstacle"))
+        private void OnCollisionExit2D(Collision2D collision)
         {
-            FindFirstObjectByType<GameManager>().GameOver();
+            if (collision.gameObject.name == GROUND_OBJECT_NAME)
+            {
+                _isGrounded = false;
+            }
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (other.gameObject.CompareTag(OBSTACLE_TAG))
+            {
+                KTC.Game.GameManager gameManager = FindFirstObjectByType<KTC.Game.GameManager>();
+
+                if (gameManager != null)
+                {
+                    gameManager.GameOver();
+                }
+            }
         }
     }
 }
